@@ -1,0 +1,901 @@
+<html lang="en" foxified=""><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CustomizeIt - Product Customizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        .color-swatch.active {
+            border: 2px solid #4f46e5;
+            transform: scale(1.1);
+        }
+        .size-option {
+            transition: all 0.2s;
+        }
+        .size-option:hover {
+            border-color: #4f46e5;
+        }
+        .size-option.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #6366f1;
+            background-color: rgba(99, 102, 241, 0.05);
+        }
+        .design-tool-btn {
+            transition: all 0.2s;
+        }
+        .design-tool-btn:hover {
+            background-color: #f1f5f9;
+        }
+        .design-tool-btn.active {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .navbar-item {
+            position: relative;
+        }
+        .navbar-item::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #6366f1;
+            transition: width 0.3s;
+        }
+        .navbar-item:hover::after {
+            width: 100%;
+        }
+        .tab-button {
+            transition: all 0.2s;
+        }
+        .tab-button.active {
+            color: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .template-item {
+            transition: transform 0.2s;
+        }
+        .template-item:hover {
+            transform: translateY(-5px);
+        }
+        .font-option {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .font-option:hover {
+            background-color: #f1f5f9;
+        }
+        .font-option.active {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+        }
+        .color-picker {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #e2e8f0;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+        }
+        .canvas-container {
+            margin: 0 auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+        }
+        .history-thumbnail {
+            width: 60px;
+            height: 60px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .history-thumbnail:hover {
+            transform: scale(1.05);
+            border-color: #6366f1;
+        }
+        .history-thumbnail.active {
+            border: 2px solid #4f46e5;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .loading-spinner {
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #4f46e5;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .product-view {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+        .product-view img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .canvas-wrapper {
+            position: relative;
+        }
+        .canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border: 1px dashed transparent;
+            transition: all 0.2s;
+        }
+        .canvas-wrapper:hover .canvas-overlay {
+            border-color: #6366f1;
+        }
+        .zoom-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .zoom-btn {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .zoom-btn:hover {
+            background-color: #f1f5f9;
+            border-color: #6366f1;
+        }
+        .product-angle-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .product-angle-btn:hover {
+            transform: scale(1.05);
+        }
+        .product-angle-btn.active {
+            border: 2px solid #4f46e5;
+        }
+        .product-angle-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Product Customizer Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Customize Your T-Shirt</h1>
+                <p class="text-gray-600 mt-1">Design your perfect custom apparel</p>
+            </div>
+            <div class="flex space-x-3 mt-4 md:mt-0">
+                <button id="save-design" class="px-4 py-2 border border-indigo-600 text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                    </svg>
+                    Save Design
+                </button>
+                <button id="add-to-cart" class="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Customizer Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Product View -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <!-- Product View Tabs -->
+                    <div class="flex border-b border-gray-200">
+                        <button class="tab-button active flex-1 py-3 font-medium text-center border-b-2 border-transparent" data-tab="front-view">Front View</button>
+                        <button class="tab-button flex-1 py-3 font-medium text-center border-b-2 border-transparent" data-tab="back-view">Back View</button>
+                        <button class="tab-button flex-1 py-3 font-medium text-center border-b-2 border-transparent" data-tab="sleeve-view">Sleeve</button>
+                    </div>
+
+                    <!-- Canvas Area -->
+                    <div class="p-4">
+                        <div class="canvas-wrapper">
+                            <div id="front-view" class="tab-content">
+                                <canvas id="canvas-front" width="600" height="600"></canvas>
+                                <div class="canvas-overlay"></div>
+                                <div class="zoom-controls">
+                                    <button class="zoom-btn" id="zoom-in">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="zoom-btn" id="zoom-out">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="zoom-btn" id="reset-zoom">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="back-view" class="tab-content hidden">
+                                <canvas id="canvas-back" width="600" height="600"></canvas>
+                                <div class="canvas-overlay"></div>
+                                <div class="zoom-controls">
+                                    <button class="zoom-btn" id="zoom-in-back">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="zoom-btn" id="zoom-out-back">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="zoom-btn" id="reset-zoom-back">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="sleeve-view" class="tab-content hidden">
+                                <canvas id="canvas-sleeve" width="600" height="600"></canvas>
+                                <div class="canvas-overlay"></div>
+                                <div class="zoom-controls">
+                                    <button class="zoom-btn" id="zoom-in-sleeve">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="zoom-btn" id="zoom-out-sleeve">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="zoom-btn" id="reset-zoom-sleeve">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Design History -->
+                    <div class="p-4 border-t border-gray-200">
+                        <h3 class="text-sm font-medium text-gray-700 mb-3">Design History</h3>
+                        <div class="flex space-x-3 overflow-x-auto pb-2" id="design-history">
+                            <div class="history-thumbnail active flex items-center justify-center bg-gray-100">
+                                <span class="text-xs text-gray-500">Initial</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Design Tools -->
+                    <div class="p-4 border-t border-gray-200">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="undo-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                </svg>
+                                <span>Undo</span>
+                            </button>
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="redo-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                                <span>Redo</span>
+                            </button>
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="center-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
+                                <span>Center</span>
+                            </button>
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="delete-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                <span>Delete</span>
+                            </button>
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="duplicate-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Duplicate</span>
+                            </button>
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="bring-forward-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                </svg>
+                                <span>Bring Forward</span>
+                            </button>
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="send-backward-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                                <span>Send Backward</span>
+                            </button>
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="flip-horizontal-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                                <span>Flip Horizontal</span>
+                            </button>
+                            <button class="design-tool-btn px-3 py-2 border border-gray-300 rounded-md flex items-center space-x-1" id="flip-vertical-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                </svg>
+                                <span>Flip Vertical</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Preview -->
+                <div class="bg-white rounded-xl shadow-md p-6 mt-6">
+                    <h2 class="text-lg font-semibold mb-4">Product Preview</h2>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="product-angle-btn active">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTUwLDIwIEwxNTAsMjAgTDE3MCw1MCBMMTgwLDQwIEwxNzAsOTAgTDE2MCw5MCBMMTY1LDE4MCBMNDVMMTY1IEw0MCw5MCBMMzAsOTAgTDIwLDQwIEwzMCw1MCBMNTAsMjAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iI2NjY2NjYyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTUwLDIwIEM1MCwyMCA4MCw1MCAxMDAsNTAgQzEyMCw1MCAxNTAsMjAgMTUwLDIwIiBmaWxsPSJub25lIiBzdHJva2U9IiNjY2NjY2MiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==" alt="Front View">
+                        </div>
+                        <div class="product-angle-btn">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTUwLDIwIEwxNTAsMjAgTDE3MCw1MCBMMTgwLDQwIEwxNzAsOTAgTDE2MCw5MCBMMTY1LDE4MCBMNDVMMTY1IEw0MCw5MCBMMzAsOTAgTDIwLDQwIEwzMCw1MCBMNTAsMjAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iI2NjY2NjYyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTUwLDIwIEM1MCwyMCA4MCw1MCAxMDAsNTAgQzEyMCw1MCAxNTAsMjAgMTUwLDIwIiBmaWxsPSJub25lIiBzdHJva2U9IiNjY2NjY2MiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==" alt="Back View">
+                        </div>
+                        <div class="product-angle-btn">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHBhdGggZD0iTTcwLDIwIEwxMzAsMjAgTDEzMCwxODAgTDcwLDE4MCBaIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNjY2NjY2MiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Ik03MCwyMCBMNTAsNTAgTDUwLDE1MCBMNzAsMTgwIiBmaWxsPSJub25lIiBzdHJva2U9IiNjY2NjY2MiIHN0cm9rZS13aWR0aD0iMiIvPjxwYXRoIGQ9Ik0xMzAsMjAgTDE1MCw1MCBMMTU1LDE1MCBMMTM1LDE4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjY2NjIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=" alt="Side View">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Design Tools -->
+            <div class="lg:col-span-1">
+                <!-- Design Tools Tabs -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                    <div class="flex border-b border-gray-200">
+                        <button class="tab-button active flex-1 py-3 font-medium text-center border-b-2 border-transparent" data-tab="product-tab">Product</button>
+                        <button class="tab-button flex-1 py-3 font-medium text-center border-b-2 border-transparent" data-tab="upload-tab">Upload</button>
+                        <button class="tab-button flex-1 py-3 font-medium text-center border-b-2 border-transparent" data-tab="text-tab">Text</button>
+                        <button class="tab-button flex-1 py-3 font-medium text-center border-b-2 border-transparent" data-tab="clipart-tab">Clipart</button>
+                    </div>
+
+                    <!-- Product Tab -->
+                    <div class="tab-content p-6" id="product-tab-content">
+                        <h3 class="text-lg font-semibold mb-4">Product Options</h3>
+                        
+                        <!-- Product Type -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Product Type</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button class="size-option active py-2 px-4 border border-gray-300 rounded-lg text-center">T-Shirt</button>
+                                <button class="size-option py-2 px-4 border border-gray-300 rounded-lg text-center">Hoodie</button>
+                                <button class="size-option py-2 px-4 border border-gray-300 rounded-lg text-center">Tank Top</button>
+                                <button class="size-option py-2 px-4 border border-gray-300 rounded-lg text-center">Sweatshirt</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Color -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Product Color</label>
+                            <div class="flex flex-wrap gap-3">
+                                <div class="color-swatch active" style="background-color: #ffffff; border: 1px solid #e2e8f0;" data-color="#ffffff"></div>
+                                <div class="color-swatch" style="background-color: #000000;" data-color="#000000"></div>
+                                <div class="color-swatch" style="background-color: #ef4444;" data-color="#ef4444"></div>
+                                <div class="color-swatch" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
+                                <div class="color-swatch" style="background-color: #10b981;" data-color="#10b981"></div>
+                                <div class="color-swatch" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
+                                <div class="color-swatch" style="background-color: #8b5cf6;" data-color="#8b5cf6"></div>
+                                <div class="color-swatch" style="background-color: #ec4899;" data-color="#ec4899"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Size -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Size</label>
+                            <div class="grid grid-cols-5 gap-2">
+                                <button class="size-option py-2 border border-gray-300 rounded-lg text-center">XS</button>
+                                <button class="size-option active py-2 border border-gray-300 rounded-lg text-center">S</button>
+                                <button class="size-option py-2 border border-gray-300 rounded-lg text-center">M</button>
+                                <button class="size-option py-2 border border-gray-300 rounded-lg text-center">L</button>
+                                <button class="size-option py-2 border border-gray-300 rounded-lg text-center">XL</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Quantity -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                            <div class="flex items-center">
+                                <button class="px-3 py-1 border border-gray-300 rounded-l-lg hover:bg-gray-50" id="decrease-qty">-</button>
+                                <input type="number" value="1" min="1" class="w-16 py-1 border-t border-b border-gray-300 text-center focus:outline-none" id="quantity">
+                                <button class="px-3 py-1 border border-gray-300 rounded-r-lg hover:bg-gray-50" id="increase-qty">+</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Price -->
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-700">Price</h3>
+                                <p class="text-2xl font-bold" id="price">$24.99</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Tab -->
+                    <div class="tab-content p-6 hidden" id="upload-tab-content">
+                        <h3 class="text-lg font-semibold mb-4">Upload Your Design</h3>
+                        <div class="upload-area p-8 rounded-lg flex flex-col items-center justify-center cursor-pointer mb-6" id="upload-area">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="text-gray-600 mb-2">Drag and drop your design here</p>
+                            <p class="text-gray-400 text-sm mb-4">Supports PNG, JPG, SVG (Max 10MB)</p>
+                            <button class="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition" id="upload-button">Browse Files</button>
+                            <input type="file" id="file-input" class="hidden" accept="image/*">
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold mb-4">Your Uploads</h3>
+                        <div class="grid grid-cols-2 gap-4" id="uploaded-images">
+                            <div class="bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition">
+                                <div class="aspect-square bg-white rounded border border-gray-200 flex items-center justify-center mb-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-xs text-center text-gray-500">Upload an image</p>
+                            </div>
+                            <div class="bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition">
+                                <div class="aspect-square bg-white rounded border border-gray-200 flex items-center justify-center mb-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-xs text-center text-gray-500">Upload an image</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Tab -->
+                    <div class="tab-content p-6 hidden" id="text-tab-content">
+                        <h3 class="text-lg font-semibold mb-4">Add Text</h3>
+                        <div class="mb-6">
+                            <textarea id="text-input" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows="3" placeholder="Enter your text here..."></textarea>
+                            <button id="add-text-btn" class="mt-2 w-full py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition">Add Text</button>
+                        </div>
+                        
+                        <div class="text-tool-panel">
+                            <h4 class="font-medium mb-3">Text Formatting</h4>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Font Family</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="font-option p-2 border border-gray-300 rounded-lg text-center active" data-font="Arial, sans-serif">
+                                        <span style="font-family: Arial, sans-serif;">Arial</span>
+                                    </div>
+                                    <div class="font-option p-2 border border-gray-300 rounded-lg text-center" data-font="'Times New Roman', serif">
+                                        <span style="font-family: 'Times New Roman', serif;">Times</span>
+                                    </div>
+                                    <div class="font-option p-2 border border-gray-300 rounded-lg text-center" data-font="'Comic Sans MS', cursive">
+                                        <span style="font-family: 'Comic Sans MS', cursive;">Comic</span>
+                                    </div>
+                                    <div class="font-option p-2 border border-gray-300 rounded-lg text-center" data-font="Impact, fantasy">
+                                        <span style="font-family: Impact, fantasy;">Impact</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Font Size</label>
+                                <div class="flex items-center">
+                                    <input type="range" min="12" max="72" value="24" class="slider flex-1" id="font-size-slider">
+                                    <span class="ml-2 w-10 text-center" id="font-size-value">24px</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Text Color</label>
+                                <div class="color-picker">
+                                    <div class="color-swatch active" style="background-color: #000000;" data-color="#000000"></div>
+                                    <div class="color-swatch" style="background-color: #ffffff; border: 1px solid #e2e8f0;" data-color="#ffffff"></div>
+                                    <div class="color-swatch" style="background-color: #ef4444;" data-color="#ef4444"></div>
+                                    <div class="color-swatch" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
+                                    <div class="color-swatch" style="background-color: #10b981;" data-color="#10b981"></div>
+                                    <div class="color-swatch" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
+                                    <div class="color-swatch" style="background-color: #8b5cf6;" data-color="#8b5cf6"></div>
+                                    <div class="color-swatch" style="background-color: #ec4899;" data-color="#ec4899"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Text Style</label>
+                                <div class="flex space-x-2">
+                                    <button class="flex-1 p-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="bold-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h10M6 18h10M6 6h10"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="flex-1 p-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="italic-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="flex-1 p-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="underline-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Text Alignment</label>
+                                <div class="flex space-x-2">
+                                    <button class="flex-1 p-2 border border-gray-300 rounded-lg hover:bg-gray-50 active" id="align-left">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="flex-1 p-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="align-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M8 12h8M4 18h16"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="flex-1 p-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="align-right">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M10 12h10M4 18h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Text Effects</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button class="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm" id="curved-text">Curved Text</button>
+                                    <button class="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm" id="shadow-effect">Add Shadow</button>
+                                    <button class="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm" id="outline-effect">Add Outline</button>
+                                    <button class="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm" id="gradient-effect">Gradient</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clipart Tab -->
+                    <div class="tab-content p-6 hidden" id="clipart-tab-content">
+                        <h3 class="text-lg font-semibold mb-4">Add Clipart</h3>
+                        <div class="mb-4">
+                            <input type="text" placeholder="Search clipart..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="font-medium mb-2">Categories</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">All</button>
+                                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">Animals</button>
+                                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">Sports</button>
+                                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">Nature</button>
+                                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">Symbols</button>
+                                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">Emojis</button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="heart">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="smile">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="home">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="star">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="music">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <path d="M9 18V5l12-2v13"></path>
+                                        <circle cx="6" cy="18" r="3"></circle>
+                                        <circle cx="18" cy="16" r="3"></circle>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="camera">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                        <circle cx="12" cy="13" r="4"></circle>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="coffee">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="globe">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="clipart-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:bg-gray-100 transition" data-clipart="anchor">
+                                <div class="aspect-square flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                        <circle cx="12" cy="5" r="3"></circle>
+                                        <line x1="12" y1="22" x2="12" y2="8"></line>
+                                        <path d="M5 12H2a10 10 0 0 0 20 0h-3"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <button class="w-full py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Load More</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Element Properties -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6" id="element-properties">
+                    <h3 class="text-lg font-semibold mb-4">Element Properties</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-600 mb-1">Position</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">X Position</label>
+                                <input type="number" id="position-x" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500" value="0">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Y Position</label>
+                                <input type="number" id="position-y" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-600 mb-1">Size</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Width</label>
+                                <input type="number" id="element-width" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500" value="100">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Height</label>
+                                <input type="number" id="element-height" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500" value="100">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-600 mb-1">Rotation</label>
+                        <div class="flex items-center">
+                            <input type="range" min="0" max="360" value="0" class="slider flex-1" id="rotation-slider">
+                            <span class="ml-2 w-10 text-center" id="rotation-value">0°</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-600 mb-1">Opacity</label>
+                        <div class="flex items-center">
+                            <input type="range" min="0" max="100" value="100" class="slider flex-1" id="opacity-slider">
+                            <span class="ml-2 w-10 text-center" id="opacity-value">100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Templates -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Quick Templates</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="template-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:shadow-md transition">
+                            <div class="aspect-square bg-gradient-to-br from-indigo-100 to-purple-100 rounded flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" fill="#6366f1" opacity="0.2"></circle>
+                                    <circle cx="50" cy="50" r="30" fill="#6366f1" opacity="0.4"></circle>
+                                    <circle cx="50" cy="50" r="20" fill="#6366f1" opacity="0.6"></circle>
+                                    <text x="50" y="55" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">LOGO</text>
+                                </svg>
+                            </div>
+                            <p class="text-xs text-center font-medium">Circular Logo</p>
+                        </div>
+                        <div class="template-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:shadow-md transition">
+                            <div class="aspect-square bg-gradient-to-br from-pink-100 to-rose-100 rounded flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100">
+                                    <rect x="20" y="30" width="60" height="40" fill="#ec4899" opacity="0.6"></rect>
+                                    <text x="50" y="55" font-family="Arial" font-size="12" text-anchor="middle" fill="#ffffff">BRAND</text>
+                                </svg>
+                            </div>
+                            <p class="text-xs text-center font-medium">Simple Banner</p>
+                        </div>
+                        <div class="template-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:shadow-md transition">
+                            <div class="aspect-square bg-gradient-to-br from-amber-100 to-yellow-100 rounded flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100">
+                                    <path d="M20,50 L50,20 L80,50 L50,80 Z" fill="#f59e0b" opacity="0.6"></path>
+                                    <text x="50" y="55" font-family="Arial" font-size="10" text-anchor="middle" fill="#ffffff">DIAMOND</text>
+                                </svg>
+                            </div>
+                            <p class="text-xs text-center font-medium">Diamond Shape</p>
+                        </div>
+                        <div class="template-item bg-gray-50 p-2 rounded-lg cursor-pointer hover:shadow-md transition">
+                            <div class="aspect-square bg-gradient-to-br from-emerald-100 to-green-100 rounded flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100">
+                                    <path d="M10,30 C10,30 30,10 50,10 C70,10 90,30 90,30 C90,30 70,90 50,90 C30,90 10,30 10,30 Z" fill="#10b981" opacity="0.4"></path>
+                                    <text x="50" y="55" font-family="Arial" font-size="10" text-anchor="middle" fill="#ffffff">WAVE</text>
+                                </svg>
+                            </div>
+                            <p class="text-xs text-center font-medium">Wave Design</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="fixed inset-0 flex items-center justify-center z-50 hidden" id="success-modal">
+        <div class="absolute inset-0 bg-black bg-opacity-50" id="modal-overlay"></div>
+        <div class="bg-white rounded-xl p-6 shadow-2xl relative z-10 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Added to Cart!</h3>
+                <p class="text-gray-600 mb-6">Your custom product has been added to your cart.</p>
+                <div class="flex space-x-4">
+                    <button class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition" id="continue-shopping">Continue Shopping</button>
+                    <button class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">View Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </body></html>
